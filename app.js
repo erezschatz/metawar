@@ -1,5 +1,5 @@
 // Configuration
-var MONGO_URI = "mongodb://localhost:27010/";
+var MONGO_URI = "mongodb://localhost:27010/metawar";
 var PORT = 12345;
 
 var express = require('express');
@@ -12,20 +12,23 @@ app.listen(PORT);
 var mongo = require('mongodb').MongoClient;
 
 app.get('/', function(request, response){
-    mongo.connect(MONGO_URI, function(err,db){
+    response.sendfile("index.html");
+});
+
+app.get('/random', function(request, response) {
+    mongo.connect(MONGO_URI, function(err, db){
         if(err){
-            return err;
+            console.log(err);
         }
-
-        db.collection('collection').find(function(err){
-            if(err){
-                return err;
-            }
-
-            // Close database
-            db.close();
-
+        db.collection('categories').find({}).toArray(function(err, docs) {
+            var category = docs[Math.floor(Math.random() * docs.length)];
+            response.send({
+                "category" : category.name,
+                "items" : [
+                    category.items[Math.floor(Math.random() * category.items.length)],
+                    category.items[Math.floor(Math.random() * category.items.length)],
+                ]
+            });
         });
     });
-    //response.sendfile("index.html");
 });
